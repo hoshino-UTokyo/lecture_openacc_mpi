@@ -9,6 +9,7 @@
 module load nvidia cuda ompi-cuda
 
 export UCX_MEMTYPE_CACHE=no
+export UCX_IB_GPU_DIRECT_RDMA=n
 
 mpirun -np 2 ./run
 

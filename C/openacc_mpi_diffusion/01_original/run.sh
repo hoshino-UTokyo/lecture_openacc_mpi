@@ -6,7 +6,7 @@
 
 cd $PBS_O_WORKDIR
 
-. /etc/profile.d/modules.sh
+
 module load pgi/17.10
 module load openmpi/2.1.2/pgi
 

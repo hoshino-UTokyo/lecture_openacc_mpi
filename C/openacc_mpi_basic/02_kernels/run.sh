@@ -1,15 +1,12 @@
-#! /bin/sh
-#PBS -q h-lecture
-#PBS -l select=1:mpiprocs=2:ompthreads=0
-#PBS -W group_list=gt00
-#PBS -l walltime=00:05:00
+#!/bin/bash
+#PJM -L rscgrp=lecture-a
+#PJM -L gpu=2
+#PJM -L elapse=00:10:00
+#PJM -g gt00
 
-cd $PBS_O_WORKDIR
 
-. /etc/profile.d/modules.sh
-module load pgi/17.10
-module load openmpi/2.1.2/pgi
 
+module load nvidia cuda ompi-cuda
 
 mpirun -np 2 ./run
 
