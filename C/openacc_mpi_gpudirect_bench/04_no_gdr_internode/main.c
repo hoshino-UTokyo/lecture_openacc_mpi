@@ -1,11 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <sys/time.h>
 #include <mpi.h>
+#include <unistd.h>
 #include <openacc.h>
 
-
-double get_elapsed_time(const struct timeval *tv0, const struct timeval *tv1);
 
 int main(int argc, char *argv[])
 {
@@ -43,6 +41,8 @@ int main(int argc, char *argv[])
 #pragma acc data create(a[0:n], b[0:n])
     {
 
+	if (rank == 0) fprintf(stdout, " Message Size (byte),       (min,max,median) Time (sec), Throughput (MB/sec) \n");
+
 	for (unsigned int w=1; w<=n; w=(w<<1)){
 	    
 #pragma acc kernels copyout(a[0:n], b[0:n])
@@ -55,22 +55,37 @@ int main(int argc, char *argv[])
 	    const int dst_rank = (rank + 1) % nprocs;
 	    const int tag      = 0;
 
-	    struct timeval tv0, tv1;
+	    double st,en,times[11];
 
-	    MPI_Barrier(MPI_COMM_WORLD);
-	    gettimeofday(&tv0, NULL);
+	    for (unsigned int i=0; i<11; i++) {
 
-	    if (rank == 0) {
-		MPI_Status status;
+		MPI_Barrier(MPI_COMM_WORLD);
+		st = MPI_Wtime();
+		
+		if (rank == 0) {
+		    MPI_Status status;
 #pragma acc host_data use_device(b)
-		MPI_Recv(b, w, MPI_DOUBLE, dst_rank, tag, MPI_COMM_WORLD, &status);
-	    } else {
+		    MPI_Recv(b, w, MPI_DOUBLE, dst_rank, tag, MPI_COMM_WORLD, &status);
+		} else {
 #pragma acc host_data use_device(a)
-		MPI_Send(a, w, MPI_DOUBLE, dst_rank, tag, MPI_COMM_WORLD);
+		    MPI_Send(a, w, MPI_DOUBLE, dst_rank, tag, MPI_COMM_WORLD);
+		}
+		
+		MPI_Barrier(MPI_COMM_WORLD);
+		en = MPI_Wtime();
+
+		times[i] = en - st;
 	    }
-	    
-	    MPI_Barrier(MPI_COMM_WORLD);
-	    gettimeofday(&tv1, NULL);
+
+	    for (unsigned int i=0; i<11; i++) {
+		for (unsigned int j=i+1; j<11; j++) {
+		    if(times[i] > times[j]){
+			double tmp = times[i];
+			times[i] = times[j];
+			times[j] = tmp;
+		    }
+		}
+	    }
 	    
 	    double sum = 0.0;
 #pragma acc kernels copyin(b[0:n])
@@ -79,12 +94,10 @@ int main(int argc, char *argv[])
 		sum += b[i];
 	    }
 	    if (rank == 0) {
-		fprintf(stdout, "Message Size = %11d \n", w);
-#ifdef DEBUG
-		fprintf(stdout, "Sum (==size) = %f \n", f);
-#endif
-		fprintf(stdout, "Time         = %11.6f [sec]\n", get_elapsed_time(&tv0, &tv1));
-		fprintf(stdout, "Throughput   = %11.5e [GB/sec]\n", (double)w*8.0*1.0E-9/get_elapsed_time(&tv0, &tv1));
+		if(sum != (double)w) {
+		    fprintf(stderr, "error! sum = %f should be same as w = %d \n", sum, w);
+		}
+		fprintf(stdout, "%20llu,(%10.7f,%10.7f,%10.7f),%20.8f \n", (unsigned long long)w*8, times[0],times[10],times[5], (double)w*8.0*1.0E-6/times[5]);
 	    }
 	}
     }
@@ -99,7 +112,3 @@ int main(int argc, char *argv[])
     return 0;
 }
 
-double get_elapsed_time(const struct timeval *tv0, const struct timeval *tv1)
-{
-    return (double)(tv1->tv_sec - tv0->tv_sec) + (double)(tv1->tv_usec - tv0->tv_usec)*1.0e-6;
-}
