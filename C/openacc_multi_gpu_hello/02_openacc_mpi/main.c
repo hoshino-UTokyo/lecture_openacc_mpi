@@ -3,10 +3,8 @@
 #include <mpi.h>
 #include <openacc.h>
 
-
 int main(int argc, char *argv[])
 {
-
     int length = 12;
     char a[] = "Hello World";
 
@@ -41,5 +39,6 @@ int main(int argc, char *argv[])
     
     printf("rank = %d, gpuid = %d, b = %s\n", rank, gpuid, b);
 
+    MPI_Finalize();
     return 0;
 }
