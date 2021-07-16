@@ -7,5 +7,7 @@
 
 module load nvidia cuda ompi-cuda
 
-export UCX_MEMTYPE_CACHE=n
-mpiexec -machinefile $PJM_O_NODEINF -n $PJM_MPI_PROC ./run
+mpirun -np 2 ./run
+
+
+

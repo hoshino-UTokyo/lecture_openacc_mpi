@@ -1,6 +1,6 @@
 
-CC   = pgcc
-CXX  = pgc++
+CC   = mpicc
+CXX  = mpic++
 GCC  = gcc
 RM  = rm -f
 MAKEDEPEND = makedepend

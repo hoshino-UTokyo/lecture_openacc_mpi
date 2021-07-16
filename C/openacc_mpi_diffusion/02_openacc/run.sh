@@ -1,12 +1,11 @@
 #!/bin/bash
-#PJM -L rscgrp=regular-a
-#PJM -L node=1
+#PJM -L rscgrp=lecture-a
+#PJM -L gpu=2
+#PJM --mpi proc=2
 #PJM -L elapse=00:10:00
-#PJM -g gz00
+#PJM -g gt00
 
-module load nvidia/21.3 ompi-cuda/4.1.1-11.2
+module load nvidia cuda ompi-cuda
 
-nprocs=2
-export UCX_IB_GPU_DIRECT_RDMA=n
-#mpirun -np $nprocs -mca btl_openib_want_cuda_gdr 0 ./run
-mpirun -np $nprocs ./run
+export UCX_MEMTYPE_CACHE=n
+mpiexec -machinefile $PJM_O_NODEINF -n $PJM_MPI_PROC ./run

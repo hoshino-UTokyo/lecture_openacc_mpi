@@ -5,12 +5,12 @@ GCC  = gcc
 RM  = rm -f
 MAKEDEPEND = makedepend
 
-CFLAGS    = -O3 -acc -Minfo=accel -ta=tesla,cc80
+CFLAGS    = -O3 -acc -ta=tesla,cc80 -Minfo=accel
 GFLAGS    = -Wall -O3 -std=c99
 CXXFLAGS  = $(CFLAGS)
 LDFLAGS   = 
 
-SRCS    = main.c diffusion.c misc.c
+SRCS    = main.c
 TARGET = run
 DISTTARGET = $(TARGET)_1.0.0
 
