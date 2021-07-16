@@ -31,7 +31,7 @@ int main(int argc, char *argv[])
 
     char b[] = "           ";
 
-#pragma acc kernels
+#pragma acc kernels copyin(a[str:end-str]) copyout(b[str:end-str])
 #pragma acc loop independent
     for (unsigned int i=str; i<end; i++) {
 	b[i] = a[i];
