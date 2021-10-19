@@ -19,9 +19,9 @@ Wisteria/BDEC-01 Aquariusノード向けのジョブスクリプトが含まれ�
 以下は全てWisteria/BDEC-01 Aquariusでの利用方法です。
 
 ```bash
-module load nvidia ompi-cuda   # NVIDA HPC SDK, OpenMPIの環境構築。ログインの度必要です。
-cd /work/グループ名/ユーザ名/  　#/home は計算ノードから参照できないので、/work以下で作業しましょう。
+module load nvidia cuda ompi-cuda   # NVIDA HPC SDK, OpenMPIの環境構築。ログインの度必要です。
+cd /work/グループ名/ユーザ名/        #/home は計算ノードから参照できないので、/work以下で作業しましょう。
 git clone https://github.com/hoshino-UTokyo/lecture_openacc_mpi.git
 cd lecture_openacc_mpi/
-cd C or F                      # C, Fortran好きな方を選んでください。
+cd C or F                          # C, Fortran好きな方を選んでください。
 ```

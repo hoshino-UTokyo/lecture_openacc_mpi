@@ -1,7 +1,6 @@
-
-
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <math.h>
 #include <mpi.h>
 #include <openacc.h>
@@ -25,12 +24,10 @@ int main(int argc, char *argv[])
     //const int nx0 = 512;
     const int ny0 = nx0;
     const int nz0 = nx0;
-    const int n0  = nx0*ny0*nz0;
 
     const int nx = nx0;
     const int ny = ny0;
     const int nz = nz0 / nprocs;
-    const int n  = nx*ny*nz;
     
     if (nz * nprocs != nz0) {
         if (rank == 0) {
@@ -53,10 +50,10 @@ int main(int argc, char *argv[])
         acc_set_device_num(gpuid, acc_device_nvidia);
     }
 
-    if (rank == 0) {
-        fprintf(stdout, "OMPI_MCA_btl_smcuda_use_cuda_ipc  = %s\n", getenv("OMPI_MCA_btl_smcuda_use_cuda_ipc"));
-        fprintf(stdout, "OMPI_MCA_btl_openib_want_cuda_gdr = %s\n", getenv("OMPI_MCA_btl_openib_want_cuda_gdr"));
-    }
+    /* if (rank == 0) { */
+    /*     fprintf(stdout, "OMPI_MCA_btl_smcuda_use_cuda_ipc  = %s\n", getenv("OMPI_MCA_btl_smcuda_use_cuda_ipc")); */
+    /*     fprintf(stdout, "OMPI_MCA_btl_openib_want_cuda_gdr = %s\n", getenv("OMPI_MCA_btl_openib_want_cuda_gdr")); */
+    /* } */
     
     for (int r=0; r<nprocs; r++) {
         MPI_Barrier(MPI_COMM_WORLD);

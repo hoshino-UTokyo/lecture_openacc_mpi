@@ -1,20 +1,14 @@
 #!/bin/bash
-#PJM -L rscgrp=lecture-a
-#PJM -L gpu=2
+#PJM -L rscgrp=regular-a
+#PJM -L node=2
+#PJM --mpi proc=2
 #PJM -L elapse=00:10:00
-#PJM -g gt00
+#PJM -g gz00
 
-
-
+module purge
 module load nvidia cuda ompi-cuda
 
-export UCX_MEMTYPE_CACHE=no
+export UCX_MEMTYPE_CACHE=n
+export UCX_IB_GPU_DIRECT_RDMA=y
 
-export OMPI_MCA_pml=ucx
-export OMPI_MCA_osc=ucx
-export OMPI_MCA_mtl=^ofi
-
-mpirun -np 2 ./run
-
-
-
+mpiexec -machinefile $PJM_O_NODEINF -n $PJM_MPI_PROC -npernode 1 ./run

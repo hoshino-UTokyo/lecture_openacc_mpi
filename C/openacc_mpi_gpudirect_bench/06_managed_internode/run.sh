@@ -6,9 +6,10 @@
 #PJM -g gx44
 
 
-
+module purge
 module load nvidia cuda ompi-cuda
 
 export UCX_MEMTYPE_CACHE=no
 
 mpiexec -machinefile $PJM_O_NODEINF -n $PJM_MPI_PROC -npernode 1 ./run
+

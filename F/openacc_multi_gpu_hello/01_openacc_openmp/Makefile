@@ -1,11 +1,10 @@
 F90  = mpif90
 RM  = rm -f
 
-FFLAGS    = -O3 -acc -Minfo=accel -ta=tesla,cc80 -cpp
-#FFLAGS    = -O3 -noacc -cpp
+FFLAGS    = -O3 -mp -acc -ta=tesla,cc80 -Minfo=accel
 LDFLAGS   = 
 
-SRCS   = misc.f90 diffusion.f90 main.f90
+SRCS   = main.f90
 TARGET = run
 DISTTARGET = $(TARGET)_1.0.0
 

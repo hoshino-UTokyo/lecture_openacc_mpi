@@ -1,7 +1,7 @@
 F90  = mpif90
 RM  = rm -f
 
-FFLAGS    = -O3 -acc -ta=tesla,cc60
+FFLAGS    = -O3 -acc -ta=tesla,cc80
 LDFLAGS   = 
 
 SRCS   = main.f90

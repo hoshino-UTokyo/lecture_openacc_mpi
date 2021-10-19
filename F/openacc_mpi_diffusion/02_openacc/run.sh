@@ -1,18 +1,12 @@
-#! /bin/sh
-#PBS -q h-lecture
-#PBS -l select=2:mpiprocs=2:ompthreads=0
-#PBS -W group_list=gt00
-#PBS -l walltime=00:05:00
+#!/bin/bash
+#PJM -L rscgrp=lecture-a
+#PJM -L gpu=2
+#PJM --mpi proc=2
+#PJM -L elapse=00:10:00
+#PJM -g gt00
 
-cd $PBS_O_WORKDIR
+module purge
+module load nvidia cuda ompi-cuda
 
-. /etc/profile.d/modules.sh
-module load pgi/17.10
-module load openmpi/2.1.2/pgi
-
-# export MV2_USE_CUDA=1
-# export MV2_USE_GPUDIRECT=1
-# mpirun -np 4 -f ${PBS_NODEFILE} ./run
-
-mpirun -np 4 -mca btl_openib_want_cuda_gdr 1 ./run
-
+export UCX_MEMTYPE_CACHE=n
+mpiexec -machinefile $PJM_O_NODEINF -n $PJM_MPI_PROC ./run

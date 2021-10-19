@@ -7,8 +7,8 @@
 cd $PBS_O_WORKDIR
 
 . /etc/profile.d/modules.sh
-module load pgi/17.10
-module load openmpi/2.1.2/pgi
+module purge
+module load nvidia cuda ompi-cuda
 
 mkdir -p sim_run
 cd sim_run

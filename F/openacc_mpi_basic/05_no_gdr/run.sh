@@ -1,14 +1,14 @@
-#! /bin/sh
-#PBS -q h-lecture
-#PBS -l select=2:mpiprocs=1:ompthreads=1
-#PBS -W group_list=gt00
-#PBS -l walltime=00:05:00
+#!/bin/bash
+#PJM -L rscgrp=regular-a
+#PJM -L node=2
+#PJM --mpi proc=2
+#PJM -L elapse=00:10:00
+#PJM -g gz00
 
-cd $PBS_O_WORKDIR
+module purge
+module load nvidia cuda ompi-cuda
 
-. /etc/profile.d/modules.sh
-module load pgi/17.10
-module load openmpi/2.1.2/pgi
+export UCX_MEMTYPE_CACHE=n
+export UCX_IB_GPU_DIRECT_RDMA=n
 
-mpirun -np 2 ./run
-
+mpiexec -machinefile $PJM_O_NODEINF -n $PJM_MPI_PROC -npernode 1 ./run

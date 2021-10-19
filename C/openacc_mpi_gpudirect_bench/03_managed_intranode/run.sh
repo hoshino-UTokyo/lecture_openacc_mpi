@@ -5,12 +5,10 @@
 #PJM -L elapse=00:10:00
 #PJM -g gt00
 
-
+module purge
 module load nvidia cuda ompi-cuda
 
 export UCX_MEMTYPE_CACHE=no
 
 mpirun -np 2 ./run
-
-
 

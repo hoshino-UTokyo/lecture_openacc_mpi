@@ -1,3 +1,10 @@
+#ifndef MPI_TYPE
+#define MPI_TYPE 2
+! 0 ... by host (correct) 
+! 1 ... cuda aware (error)
+! other ... cuda aware (work around, correct)
+#endif
+
 program main
   use mpi
 #ifdef _OPENACC
@@ -71,12 +78,12 @@ program main
      call acc_set_device_num(gpuid, acc_device_nvidia)
   end if
 
-  if (rank == 0) then
-     call getenv("OMPI_MCA_btl_smcuda_use_cuda_ipc",eval)
-     print *, "OMPI_MCA_btl_smcuda_use_cuda_ipc  =",eval
-     call getenv("OMPI_MCA_btl_openib_want_cuda_ipc",eval)
-     print *, "OMPI_MCA_btl_openib_want_cuda_gdr =",eval
-  end if
+  ! if (rank == 0) then
+  !    call getenv("OMPI_MCA_btl_smcuda_use_cuda_ipc",eval)
+  !    print *, "OMPI_MCA_btl_smcuda_use_cuda_ipc  =",eval
+  !    call getenv("OMPI_MCA_btl_openib_want_cuda_ipc",eval)
+  !    print *, "OMPI_MCA_btl_openib_want_cuda_gdr =",eval
+  ! end if
 
   do i = 0, nprocs-1
      call MPI_Barrier(MPI_COMM_WORLD, ierr)
@@ -104,7 +111,15 @@ program main
      if(rank == 0 .and. mod(icnt,100) == 0) write (*,"(A5,I4,A4,F7.5)"), "time(",icnt,") = ",time
 
      tag = 0
-#if 0  
+#if MPI_TYPE==0
+     !$acc update host(f(1:nx,1:ny,nz), f(1:nx,1:ny,1))
+     call MPI_Send(f(1,1,nz)  , nx*ny, MPI_FLOAT, rank_up  , tag, MPI_COMM_WORLD, ierr)
+     call MPI_Recv(f(1,1,0)   , nx*ny, MPI_FLOAT, rank_down, tag, MPI_COMM_WORLD, istat, ierr)
+
+     call MPI_Send(f(1,1,1)   , nx*ny, MPI_FLOAT, rank_down, tag, MPI_COMM_WORLD, ierr)
+     call MPI_Recv(f(1,1,nz+1), nx*ny, MPI_FLOAT, rank_up  , tag, MPI_COMM_WORLD, istat, ierr)
+     !$acc update device(f(1:nx,1:ny,0), f(1:nx,1:ny,nz+1))
+#elif MPI_TYPE==1
      !$acc host_data use_device(f)
      call MPI_Send(f(1,1,nz)  , nx*ny, MPI_FLOAT, rank_up  , tag, MPI_COMM_WORLD, ierr)
      call MPI_Recv(f(1,1,0)   , nx*ny, MPI_FLOAT, rank_down, tag, MPI_COMM_WORLD, istat, ierr)
