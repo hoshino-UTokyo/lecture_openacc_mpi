@@ -9,6 +9,6 @@
 run
 *.bmp
 .d00*
-*_r*_t*
+*_r*_t1
 STDIN.*
 *.tar.gz

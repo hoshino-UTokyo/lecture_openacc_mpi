@@ -9,62 +9,22 @@
 
 int main(int argc, char *argv[])
 {
-    MPI_Init(&argc, &argv);
-    
-    int nprocs = 1;
-    int rank   = 0;
-
-    MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-
-    const int rank_up   = rank != nprocs - 1 ? rank + 1 : MPI_PROC_NULL;
-    const int rank_down = rank != 0          ? rank - 1 : MPI_PROC_NULL;
-    
-    const int nx0 = 128;
-    //    const int nx0 = 512;
+    //const int nx0 = 128;
+    const int nx0 = 512;
     const int ny0 = nx0;
     const int nz0 = nx0;
 
-    const int nx = nx0;
-    const int ny = ny0;
-    const int nz = nz0 / nprocs;
-    
-    if (nz * nprocs != nz0) {
-        if (rank == 0) {
-            fprintf(stdout, "Error: nz(%d) * nprocs(%d) != nz0(%d)\n", nz, nprocs, nz0);
-        }
-        MPI_Finalize();
-        return 1;
-    }
-
-    if (rank == 0) {
-        fprintf(stdout, "nprocs = %d\n", nprocs);
-    }
-    
     const int ngpus = acc_get_num_devices(acc_device_nvidia);
+
     if (rank == 0) {
         fprintf(stdout, "num of GPUs = %d\n", ngpus);
     }
-    const int gpuid = ngpus > 0 ? rank % ngpus : -1;
-    if (gpuid >= 0) {
-        acc_set_device_num(gpuid, acc_device_nvidia);
-    }
 
-    /* if (rank == 0) { */
-    /*     fprintf(stdout, "OMPI_MCA_btl_smcuda_use_cuda_ipc  = %s\n", getenv("OMPI_MCA_btl_smcuda_use_cuda_ipc")); */
-    /*     fprintf(stdout, "OMPI_MCA_btl_openib_want_cuda_gdr = %s\n", getenv("OMPI_MCA_btl_openib_want_cuda_gdr")); */
-    /* } */
+    const int nx = nx0;
+    const int ny = ny0;
+    const int nz = nz0 / ngpus;
     
-    for (int r=0; r<nprocs; r++) {
-        MPI_Barrier(MPI_COMM_WORLD);
-        if (r != rank) continue;
 
-        char hostname[128];
-        gethostname(hostname, sizeof(hostname));
-        fprintf(stdout, "Rank %d: hostname = %s, gpuid = %d\n", rank, hostname, gpuid);
-        fflush(stdout);
-    }
-    
     const int mgn = 1;
     const int lnx = nx;
     const int lny = ny;
@@ -91,11 +51,8 @@ int main(int argc, char *argv[])
     float *f  = (float *)malloc(sizeof(float)*ln);
     float *fn = (float *)malloc(sizeof(float)*ln);
 
-    init(nprocs, rank, nx, ny, nz, mgn, dx, dy, dz, f);
-    
-    MPI_Barrier(MPI_COMM_WORLD);
+    init(nx0, ny0, nz0, dx, dy, dz, f);
 
-#pragma acc data copy(f[0:ln]) create(fn[0:ln])
     {
         
         start_timer();
@@ -103,18 +60,6 @@ int main(int argc, char *argv[])
         for (; icnt<nt && time + 0.5*dt < 0.1; icnt++) {
             if (rank == 0 && icnt % 100 == 0) fprintf(stdout, "time(%4d) = %7.5f\n", icnt, time);
             
-            const int tag = 0;
-            MPI_Status status;
-
-#pragma acc host_data use_device(f)
-            {
-                MPI_Send(&f[nx*ny*nz]      , nx*ny, MPI_FLOAT, rank_up  , tag, MPI_COMM_WORLD);
-                MPI_Recv(&f[0]             , nx*ny, MPI_FLOAT, rank_down, tag, MPI_COMM_WORLD, &status);
-
-                MPI_Send(&f[nx*ny*mgn]     , nx*ny, MPI_FLOAT, rank_down, tag, MPI_COMM_WORLD);
-                MPI_Recv(&f[nx*ny*(nz+mgn)], nx*ny, MPI_FLOAT, rank_up  , tag, MPI_COMM_WORLD, &status);
-            }
-        
             flop += diffusion3d(nprocs, rank, nx, ny, nz, mgn, dx, dy, dz, dt, kappa, f, fn);
         
             swap(&f, &fn);

@@ -20,8 +20,8 @@ int main(int argc, char *argv[])
     const int rank_up   = rank != nprocs - 1 ? rank + 1 : MPI_PROC_NULL;
     const int rank_down = rank != 0          ? rank - 1 : MPI_PROC_NULL;
     
-    const int nx0 = 128;
-    //    const int nx0 = 512;
+    //const int nx0 = 256;
+    const int nx0 = 512;
     const int ny0 = nx0;
     const int nz0 = nx0;
 

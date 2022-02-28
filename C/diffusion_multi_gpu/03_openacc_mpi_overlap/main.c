@@ -20,8 +20,8 @@ int main(int argc, char *argv[])
     const int rank_up   = rank != nprocs - 1 ? rank + 1 : MPI_PROC_NULL;
     const int rank_down = rank != 0          ? rank - 1 : MPI_PROC_NULL;
     
-    const int nx0 = 128;
-    //    const int nx0 = 512;
+    //    const int nx0 = 256;
+    const int nx0 = 512;
     const int ny0 = nx0;
     const int nz0 = nx0;
 
@@ -104,17 +104,21 @@ int main(int argc, char *argv[])
             if (rank == 0 && icnt % 100 == 0) fprintf(stdout, "time(%4d) = %7.5f\n", icnt, time);
             
             const int tag = 0;
-            MPI_Status status;
+            MPI_Status stat[4];
+	    MPI_Request req[4];
 
+#pragma acc wait(0)
+#pragma acc wait(1)	    
 #pragma acc host_data use_device(f)
             {
-                MPI_Send(&f[nx*ny*nz]      , nx*ny, MPI_FLOAT, rank_up  , tag, MPI_COMM_WORLD);
-                MPI_Recv(&f[0]             , nx*ny, MPI_FLOAT, rank_down, tag, MPI_COMM_WORLD, &status);
-
-                MPI_Send(&f[nx*ny*mgn]     , nx*ny, MPI_FLOAT, rank_down, tag, MPI_COMM_WORLD);
-                MPI_Recv(&f[nx*ny*(nz+mgn)], nx*ny, MPI_FLOAT, rank_up  , tag, MPI_COMM_WORLD, &status);
+                MPI_Irecv(&f[0]             , nx*ny, MPI_FLOAT, rank_down, tag, MPI_COMM_WORLD, &req[0]);
+                MPI_Irecv(&f[nx*ny*(nz+mgn)], nx*ny, MPI_FLOAT, rank_up  , tag, MPI_COMM_WORLD, &req[1]);
+                MPI_Isend(&f[nx*ny*nz]      , nx*ny, MPI_FLOAT, rank_up  , tag, MPI_COMM_WORLD, &req[2]);
+                MPI_Isend(&f[nx*ny*mgn]     , nx*ny, MPI_FLOAT, rank_down, tag, MPI_COMM_WORLD, &req[3]);
             }
-        
+	    MPI_Waitall(4,req,stat);
+#pragma acc wait(2)
+	    
             flop += diffusion3d(nprocs, rank, nx, ny, nz, mgn, dx, dy, dz, dt, kappa, f, fn);
         
             swap(&f, &fn);
