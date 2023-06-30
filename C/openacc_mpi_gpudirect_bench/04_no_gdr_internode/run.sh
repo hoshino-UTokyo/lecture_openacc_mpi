@@ -6,7 +6,7 @@
 #PJM -g gx44
 
 module purge
-module load nvidia cuda ompi-cuda
+module load nvidia nvmpi
 
 export UCX_MEMTYPE_CACHE=no
 export UCX_IB_GPU_DIRECT_RDMA=no

@@ -9,7 +9,7 @@
 #PJM -L elapse=00:10:00
 
 module purge
-module load nvidia cuda ompi-cuda
+module load nvidia nvmpi
 
 export UCX_MEMTYPE_CACHE=n
 # mpiexec -machinefile $PJM_O_NODEINF -n 1 ./run

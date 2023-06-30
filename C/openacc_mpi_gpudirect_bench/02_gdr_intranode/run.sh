@@ -7,7 +7,7 @@
 
 
 module purge
-module load nvidia cuda ompi-cuda
+module load nvidia nvmpi
 
 export UCX_MEMTYPE_CACHE=no
 

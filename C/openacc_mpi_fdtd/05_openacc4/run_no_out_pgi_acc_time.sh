@@ -8,7 +8,7 @@ cd $PBS_O_WORKDIR
 
 . /etc/profile.d/modules.sh
 module purge
-module load nvidia cuda ompi-cuda
+module load nvidia nvmpi
 
 mkdir -p sim_run
 cd sim_run

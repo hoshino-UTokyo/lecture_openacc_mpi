@@ -14,7 +14,7 @@ program main
   use misc
   implicit none
 
-  integer,parameter :: nx0 = 256
+  integer,parameter :: nx0 = 512
   integer,parameter :: ny0 = nx0
   integer,parameter :: nz0 = nx0
   integer,parameter :: nt = 100000
@@ -105,23 +105,26 @@ program main
 
   call MPI_Barrier(MPI_COMM_WORLD, ierr)
 
-  !$omp target
-  !$omp& data
-  !%omp& map(tofrom:f)
-  !%omp& map(tofrom:fn)
+  !$acc data     &
+  !$acc& copy(f)   &
+  !$acc& copy(fn)
   tag = 0
 #if MPI_TYPE==0
+  !$acc update host(f(1:nx,1:ny,nz), f(1:nx,1:ny,1))
   call MPI_Isend(f(1,1,nz)  , nx*ny, MPI_DOUBLE, rank_up  , tag, MPI_COMM_WORLD, ireq(1), ierr)
   call MPI_Irecv(f(1,1,0)   , nx*ny, MPI_DOUBLE, rank_down, tag, MPI_COMM_WORLD, ireq(2), ierr)
   
   call MPI_Isend(f(1,1,1)   , nx*ny, MPI_DOUBLE, rank_down, tag, MPI_COMM_WORLD, ireq(3), ierr)
   call MPI_Irecv(f(1,1,nz+1), nx*ny, MPI_DOUBLE, rank_up  , tag, MPI_COMM_WORLD, ireq(4), ierr)
+  !$acc update device(f(1:nx,1:ny,0), f(1:nx,1:ny,nz+1))
 #elif MPI_TYPE==1
+  !$acc host_data use_device(f)
   call MPI_Isend(f(1,1,nz)  , nx*ny, MPI_DOUBLE, rank_up  , tag, MPI_COMM_WORLD, ireq(1), ierr)
   call MPI_Irecv(f(1,1,0)   , nx*ny, MPI_DOUBLE, rank_down, tag, MPI_COMM_WORLD, ireq(2), ierr)
   
   call MPI_Isend(f(1,1,1)   , nx*ny, MPI_DOUBLE, rank_down, tag, MPI_COMM_WORLD, ireq(3), ierr)
   call MPI_Irecv(f(1,1,nz+1), nx*ny, MPI_DOUBLE, rank_up  , tag, MPI_COMM_WORLD, ireq(4), ierr)
+  !$acc end host_data
 #else
   ! avoid openmpi(?) bug
   call work_around(f,nx,ny,nz,rank_up,rank_down,tag,ireq,ierr)
@@ -136,23 +139,28 @@ program main
 
      flop = flop + diffusion3d_halo(nprocs, rank, nx, ny, nz, dx, dy, dz, dt, kappa, f, fn)
 #if MPI_TYPE==0
+     !$acc update host(fn(1:nx,1:ny,nz), fn(1:nx,1:ny,1))
      call MPI_Isend(fn(1,1,nz)  , nx*ny, MPI_DOUBLE, rank_up  , tag, MPI_COMM_WORLD, ireq(1), ierr)
      call MPI_Irecv(fn(1,1,0)   , nx*ny, MPI_DOUBLE, rank_down, tag, MPI_COMM_WORLD, ireq(2), ierr)
      
      call MPI_Isend(fn(1,1,1)   , nx*ny, MPI_DOUBLE, rank_down, tag, MPI_COMM_WORLD, ireq(3), ierr)
      call MPI_Irecv(fn(1,1,nz+1), nx*ny, MPI_DOUBLE, rank_up  , tag, MPI_COMM_WORLD, ireq(4), ierr)
+     !$acc update device(fn(1:nx,1:ny,0), fn(1:nx,1:ny,nz+1))
 #elif MPI_TYPE==1
+     !$acc host_data use_device(fn)
      call MPI_Isend(fn(1,1,nz)  , nx*ny, MPI_DOUBLE, rank_up  , tag, MPI_COMM_WORLD, ireq(1), ierr)
      call MPI_Irecv(fn(1,1,0)   , nx*ny, MPI_DOUBLE, rank_down, tag, MPI_COMM_WORLD, ireq(2), ierr)
      
      call MPI_Isend(fn(1,1,1)   , nx*ny, MPI_DOUBLE, rank_down, tag, MPI_COMM_WORLD, ireq(3), ierr)
      call MPI_Irecv(fn(1,1,nz+1), nx*ny, MPI_DOUBLE, rank_up  , tag, MPI_COMM_WORLD, ireq(4), ierr)
+     !$acc end host_data
 #else
      ! avoid openmpi(?) bug
      call work_around(fn,nx,ny,nz,rank_up,rank_down,tag,ireq,ierr)
 #endif
-     call MPI_Waitall(4,ireq,istat,ierr)
      flop = flop + diffusion3d(nprocs, rank, nx, ny, nz, dx, dy, dz, dt, kappa, f, fn)
+     call MPI_Waitall(4,ireq,istat,ierr)
+
 
      call swap(f, fn)
 
@@ -163,7 +171,7 @@ program main
   call MPI_Barrier(MPI_COMM_WORLD, ierr)
     
   elapsed_time = get_elapsed_time();
-  !$omp end target data
+  !$acc end data
 
   if (rank == 0) then
      write(*, "(A7,F8.3,A6)"), "Time = ",elapsed_time," [sec]"
@@ -193,14 +201,13 @@ contains
     real(kind=8), dimension(*) :: f
     integer :: nx,ny,nz,rank_up,rank_down,tag,ireq(:),ierr
     
-    !$omp target
-    !$omp& data
-    !$omp& use_device_ptr(f)
+    !$acc host_data    &
+    !$acc& use_device(f)
     call MPI_Irecv(f(1)             , nx*ny, MPI_DOUBLE, rank_down, tag, MPI_COMM_WORLD, ireq(1), ierr)
     call MPI_Irecv(f(nx*ny*(nz+1)+1), nx*ny, MPI_DOUBLE, rank_up  , tag, MPI_COMM_WORLD, ireq(2), ierr)
     call MPI_Isend(f(nx*ny*nz+1)    , nx*ny, MPI_DOUBLE, rank_up  , tag, MPI_COMM_WORLD, ireq(3), ierr)
     call MPI_Isend(f(nx*ny+1)       , nx*ny, MPI_DOUBLE, rank_down, tag, MPI_COMM_WORLD, ireq(4), ierr)
-    !$omp end target data
+    !$acc end host_data
   end subroutine work_around
 
 end program main

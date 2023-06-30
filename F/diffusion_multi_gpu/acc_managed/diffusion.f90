@@ -23,9 +23,9 @@ contains
     cc = 1.0 - (ce + cw + cn + cs + ct + cb)
 
     k = 1
-    !$omp target
-    !$omp loop
-    !$omp& collapse(2)
+    !$acc kernels 
+    !$acc loop           &
+    !$acc& collapse(2)
     do j = 1, ny
        do i = 1, nx
           w = -1; e = 1; n = -1; s = 1; b = -1; t = 1;
@@ -39,12 +39,12 @@ contains
                + cb * f(i,j,k+b) + ct * f(i,j,k+t)
        end do
     end do
-    !$omp end target
+    !$acc end kernels    
 
     k = nz
-    !$omp target
-    !$omp loop
-    !$omp& collapse(2)
+    !$acc kernels 
+    !$acc loop             &
+    !$acc& collapse(2)
     do j = 1, ny
        do i = 1, nx
           w = -1; e = 1; n = -1; s = 1; b = -1; t = 1;
@@ -58,7 +58,7 @@ contains
                + cb * f(i,j,k+b) + ct * f(i,j,k+t)
        end do
     end do
-    !$omp end target
+    !$acc end kernels
 
     diffusion3d_halo = dble(nx*ny*2)*13.0
 
@@ -83,9 +83,9 @@ contains
 
     cc = 1.0 - (ce + cw + cn + cs + ct + cb)
     
-    !$omp target
-    !$omp loop
-    !$omp& collapse(3)
+    !$acc kernels 
+    !$acc loop              &
+    !$acc& collapse(3)
     do k = 2, nz-1
        do j = 1, ny
           do i = 1, nx
@@ -100,7 +100,7 @@ contains
           end do
        end do
     end do
-    !$omp end target
+    !$acc end kernels
 
     diffusion3d = dble(nx*ny*(nz-2))*13.0
 

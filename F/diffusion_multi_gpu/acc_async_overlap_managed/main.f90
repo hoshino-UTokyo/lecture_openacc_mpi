@@ -105,8 +105,8 @@ program main
 
   call MPI_Barrier(MPI_COMM_WORLD, ierr)
 
-  !$acc data
-  !$acc& copy(f)
+  !$acc data     &
+  !$acc& copy(f)   &
   !$acc& copy(fn)
   tag = 0
 #if MPI_TYPE==0
@@ -204,7 +204,7 @@ contains
     real(kind=8), dimension(*) :: f
     integer :: nx,ny,nz,rank_up,rank_down,tag,ireq(:),ierr
     
-    !$acc host_data
+    !$acc host_data    &
     !$acc& use_device(f)
     call MPI_Irecv(f(1)             , nx*ny, MPI_DOUBLE, rank_down, tag, MPI_COMM_WORLD, ireq(1), ierr)
     call MPI_Irecv(f(nx*ny*(nz+1)+1), nx*ny, MPI_DOUBLE, rank_up  , tag, MPI_COMM_WORLD, ireq(2), ierr)

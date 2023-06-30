@@ -14,7 +14,7 @@ program main
   use misc
   implicit none
 
-  integer,parameter :: nx0 = 256
+  integer,parameter :: nx0 = 512
   integer,parameter :: ny0 = nx0
   integer,parameter :: nz0 = nx0
   integer,parameter :: nt = 100000
@@ -188,12 +188,12 @@ contains
     real(kind=8), dimension(*) :: f
     integer :: nx,ny,nz,rank_up,rank_down,tag,ireq(:),ierr
     
-    !$acc host_data use_device(f)
+!    !$acc host_data use_device(f)
     call MPI_Irecv(f(1)             , nx*ny, MPI_DOUBLE, rank_down, tag, MPI_COMM_WORLD, ireq(1), ierr)
     call MPI_Irecv(f(nx*ny*(nz+1)+1), nx*ny, MPI_DOUBLE, rank_up  , tag, MPI_COMM_WORLD, ireq(2), ierr)
     call MPI_Isend(f(nx*ny*nz+1)    , nx*ny, MPI_DOUBLE, rank_up  , tag, MPI_COMM_WORLD, ireq(3), ierr)
     call MPI_Isend(f(nx*ny+1)       , nx*ny, MPI_DOUBLE, rank_down, tag, MPI_COMM_WORLD, ireq(4), ierr)
-    !$acc end host_data
+!    !$acc end host_data
   end subroutine work_around
 
 end program main

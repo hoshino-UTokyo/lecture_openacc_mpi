@@ -71,7 +71,9 @@ contains
 
     cc = 1.0 - (ce + cw + cn + cs + ct + cb)
     
-    do concurrent(i = 1:nx,j = 1:ny,k = 2:nz-1)
+!    do concurrent(i = 1:nx,j = 1:ny,k = 2:nz-1)
+!    do concurrent(i = 1:nx,j = 1:ny,k = 2:nz-1)
+    do concurrent(k = 2:nz-1,j = 1:ny,i = 1:nx)
        w = -1; e = 1; n = -1; s = 1; b = -1; t = 1;
        if(i == 1)  w = 0
        if(i == nx) e = 0

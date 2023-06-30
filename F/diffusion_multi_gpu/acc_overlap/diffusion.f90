@@ -23,8 +23,8 @@ contains
     cc = 1.0 - (ce + cw + cn + cs + ct + cb)
 
     k = 1
-    !$acc kernels 
-    !$acc loop
+    !$acc kernels present(f, fn) 
+    !$acc loop    &
     !$acc& collapse(2)
     do j = 1, ny
        do i = 1, nx
@@ -42,8 +42,8 @@ contains
     !$acc end kernels    
 
     k = nz
-    !$acc kernels 
-    !$acc loop
+    !$acc kernels present(f,fn)
+    !$acc loop    &
     !$acc& collapse(2)
     do j = 1, ny
        do i = 1, nx
@@ -83,8 +83,8 @@ contains
 
     cc = 1.0 - (ce + cw + cn + cs + ct + cb)
     
-    !$acc kernels 
-    !$acc loop
+    !$acc kernels present(f, fn) 
+    !$acc loop   &
     !$acc& collapse(3)
     do k = 2, nz-1
        do j = 1, ny

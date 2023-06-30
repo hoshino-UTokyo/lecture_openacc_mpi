@@ -6,7 +6,7 @@ FFLAGS    = -O3 -stdpar=gpu -Minfo -gpu=cc80 -cpp
 LDFLAGS   = 
 
 SRCS   = misc.f90 diffusion.f90 main.f90
-TARGET = run
+TARGET = stdpar1
 DISTTARGET = $(TARGET)_1.0.0
 
 OBJS += $(filter %.o,$(SRCS:%.f90=%.o))

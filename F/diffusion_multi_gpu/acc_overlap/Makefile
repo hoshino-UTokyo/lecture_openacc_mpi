@@ -1,12 +1,12 @@
 F90  = mpif90
 RM  = rm -f
 
-FFLAGS    = -O3 -acc=gpu -Minfo=accel -gpu=cc80,managed -cpp
+FFLAGS    = -O3 -acc -Minfo=accel -ta=tesla,cc80 -cpp
 #FFLAGS    = -O3 -noacc -cpp
 LDFLAGS   = 
 
 SRCS   = misc.f90 diffusion.f90 main.f90
-TARGET = run
+TARGET = acc_overlap
 DISTTARGET = $(TARGET)_1.0.0
 
 OBJS += $(filter %.o,$(SRCS:%.f90=%.o))

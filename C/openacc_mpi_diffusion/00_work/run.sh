@@ -6,7 +6,7 @@
 #PJM -g gz00
 
 module purge
-module load nvidia cuda ompi-cuda
+module load nvidia nvmpi
 
 export UCX_MEMTYPE_CACHE=n
 #export NVCOMPILER_ACC_TIME=1
